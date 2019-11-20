@@ -102,10 +102,10 @@ public class TeleOpPetkotron_2000 extends OpMode {
             rearRightPower = -strafe_movement;
         }
 
-        frontLeftPower=frontLeftPower-rotation_movement;
-        rearLeftPower=rearLeftPower-rotation_movement;
-        frontRightPower=frontRightPower+rotation_movement;
-        rearRightPower=rearRightPower+rotation_movement;
+        frontLeftPower=Range.clip(frontLeftPower-rotation_movement,-1.0,1.0);
+        rearLeftPower=Range.clip(rearLeftPower-rotation_movement,-1.0,1.0);
+        frontRightPower=Range.clip(frontRightPower+rotation_movement,-1.0,1.0);
+        rearRightPower=Range.clip(rearRightPower+rotation_movement,-1.0,1.0);
 
         robot.leftFrontDrive.setPower(frontLeftPower);
         robot.rightFrontDrive.setPower(frontRightPower);
