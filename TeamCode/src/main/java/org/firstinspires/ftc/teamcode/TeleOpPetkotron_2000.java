@@ -36,6 +36,8 @@ import com.qualcomm.robotcore.hardware.DcMotor;
 import com.qualcomm.robotcore.util.ElapsedTime;
 import com.qualcomm.robotcore.util.Range;
 
+import static java.lang.Math.abs;
+
 @TeleOp(name="PetkoTron_2000: TeleOp", group="PetkoTron_2000")
 //@Disabled
 public class TeleOpPetkotron_2000 extends OpMode {
@@ -75,32 +77,40 @@ public class TeleOpPetkotron_2000 extends OpMode {
     @Override
     public void loop() {
         // Setup a variable for each drive wheel to save power level for telemetry
-        double leftPower;
-        double rightPower;
+        double frontLeftPower = 0;
+        double frontRightPower = 0;
+        double rearLeftPower = 0;
+        double rearRightPower = 0;
 
-        // Choose to drive using either Tank Mode, or POV Mode
-        // Comment out the method that's not used.  The default below is POV.
+        double fb_movement = -gamepad1.left_stick_y;
+        double strife_movement = gamepad1.left_stick_x;
+        double rotation_movement = gamepad1.right_stick_x;
 
-        // POV Mode uses left stick to go forward, and right stick to turn.
-        // - This uses basic math to combine motions and is easier to drive straight.
-        double left_stick_y = gamepad1.left_stick_y;
-        double left_stick_x = gamepad1.left_stick_x;
-        double right_stick_y = gamepad1.right_stick_y;
-        double right_stick_x = gamepad1.right_stick_x;
+        // If the y of the left stick is greater (absolute) than the x of the left stick,
+        // set power of each motor to the value of the y left stick.
+        if(abs(fb_movement) > abs(strife_movement)) {
+            frontLeftPower = fb_movement;
+            frontRightPower = fb_movement;
+            rearLeftPower = fb_movement;
+            rearRightPower = fb_movement;
+        }
 
-        double drive = -gamepad1.left_stick_y;
-        double turn  =  gamepad1.right_stick_x;
-        leftPower    = Range.clip(drive + turn, -1.0, 1.0) ;
-        rightPower   = Range.clip(drive - turn, -1.0, 1.0) ;
+        if(abs(strife_movement) > abs(fb_movement)) {
+            frontLeftPower = strife_movement;
+            frontRightPower = strife_movement;
+            rearLeftPower = -strife_movement;
+            rearRightPower = -strife_movement;
+        }
 
-        // Tank Mode uses one stick to control each wheel.
-        // - This requires no math, but it is hard to drive forward slowly and keep straight.
-        // leftPower  = -gamepad1.left_stick_y ;
-        // rightPower = -gamepad1.right_stick_y ;
+        robot.leftFrontDrive.setPower(frontLeftPower);
+        robot.rightFrontDrive.setPower(frontRightPower);
+        robot.leftBackDrive.setPower(rearLeftPower);
+        robot.rightBackDrive.setPower(rearRightPower);
 
-        // Send calculated power to wheels
-        //leftDrive.setPower(leftPower);
-        //rightDrive.setPower(rightPower);
+        //double drive = -gamepad1.left_stick_y;
+        //double turn  =  gamepad1.right_stick_x;
+        //leftPower    = Range.clip(drive + turn, -1.0, 1.0) ;
+        //rightPower   = Range.clip(drive - turn, -1.0, 1.0) ;
 
         if(gamepad1.dpad_up) {
             robot.arm.setPower(robot.ARM_UP_POWER);
@@ -116,7 +126,7 @@ public class TeleOpPetkotron_2000 extends OpMode {
 
         // Show the elapsed game time and wheel power.
         telemetry.addData("Status", "Run Time: " + runtime.toString());
-        telemetry.addData("Motors", "left (%.2f), right (%.2f)", leftPower, rightPower);
+        telemetry.addData("Motors", "front left (%.2f), front right (%.2f), rear left (%.2f), rear right (%.2f)", frontLeftPower, frontRightPower, rearLeftPower, rearRightPower);
     }
 
     /*
