@@ -83,24 +83,29 @@ public class TeleOpPetkotron_2000 extends OpMode {
         double rearRightPower = 0;
 
         double fb_movement = -gamepad1.left_stick_y;
-        double strife_movement = gamepad1.left_stick_x;
+        double strafe_movement = gamepad1.left_stick_x;
         double rotation_movement = gamepad1.right_stick_x;
 
         // If the y of the left stick is greater (absolute) than the x of the left stick,
         // set power of each motor to the value of the y left stick.
-        if(abs(fb_movement) > abs(strife_movement)) {
+        if(abs(fb_movement) > abs(strafe_movement)) {
             frontLeftPower = fb_movement;
             frontRightPower = fb_movement;
             rearLeftPower = fb_movement;
             rearRightPower = fb_movement;
         }
 
-        if(abs(strife_movement) > abs(fb_movement)) {
-            frontLeftPower = strife_movement;
-            frontRightPower = strife_movement;
-            rearLeftPower = -strife_movement;
-            rearRightPower = -strife_movement;
+        if(abs(strafe_movement) > abs(fb_movement)) {
+            frontLeftPower = strafe_movement;
+            frontRightPower = strafe_movement;
+            rearLeftPower = -strafe_movement;
+            rearRightPower = -strafe_movement;
         }
+
+        frontLeftPower=frontLeftPower-rotation_movement;
+        rearLeftPower=rearLeftPower-rotation_movement;
+        frontRightPower=frontRightPower+rotation_movement;
+        rearRightPower=rearRightPower+rotation_movement;
 
         robot.leftFrontDrive.setPower(frontLeftPower);
         robot.rightFrontDrive.setPower(frontRightPower);
