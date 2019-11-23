@@ -137,8 +137,8 @@ public class TeleOpPetkotron_2000 extends OpMode {
         }
 
         if(gamepad1.right_stick_button) {
-            robot.rightClaw.setPosition(0);
-            robot.leftClaw.setPosition(0);
+            robot.rightClaw.setPosition(-1);
+            robot.leftClaw.setPosition(-1);
         }
 
         // Show the elapsed game time and wheel power.
