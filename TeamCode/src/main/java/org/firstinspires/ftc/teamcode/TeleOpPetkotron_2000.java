@@ -29,10 +29,9 @@
 
 package org.firstinspires.ftc.teamcode;
 
-import com.qualcomm.robotcore.eventloop.opmode.Disabled;
 import com.qualcomm.robotcore.eventloop.opmode.OpMode;
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
-import com.qualcomm.robotcore.hardware.DcMotor;
+import com.qualcomm.robotcore.hardware.Servo;
 import com.qualcomm.robotcore.util.ElapsedTime;
 import com.qualcomm.robotcore.util.Range;
 
@@ -83,12 +82,15 @@ public class TeleOpPetkotron_2000 extends OpMode {
         double rearRightPower = 0;
 
         double fb_movement = -gamepad1.left_stick_y;
-        double strafe_movement = gamepad1.left_stick_x;
-        double rotation_movement = gamepad1.right_stick_x;
+        double strafe_movement = -gamepad1.left_stick_x;
+        double rotation_movement = -gamepad1.right_stick_x;
 
         // If the y of the left stick is greater (absolute) than the x of the left stick,
         // set power of each motor to the value of the y left stick.
         if(abs(fb_movement) > abs(strafe_movement)) {
+            if(abs(fb_movement) <= 0.75) {
+                fb_movement = fb_movement*0.2;
+            }
             frontLeftPower = fb_movement;
             frontRightPower = fb_movement;
             rearLeftPower = fb_movement;
@@ -127,6 +129,16 @@ public class TeleOpPetkotron_2000 extends OpMode {
             robot.arm.setPower(robot.ARM_DOWN_POWER);
         } else {
             robot.arm.setPower(0);
+        }
+
+        if(gamepad1.left_stick_button) {
+            robot.rightClaw.setDirection(Servo.Direction.REVERSE);
+            robot.leftClaw.setDirection(Servo.Direction.REVERSE);
+        }
+
+        if(gamepad1.right_stick_button) {
+            robot.rightClaw.setDirection(Servo.Direction.FORWARD);
+            robot.leftClaw.setDirection(Servo.Direction.FORWARD);
         }
 
         // Show the elapsed game time and wheel power.
