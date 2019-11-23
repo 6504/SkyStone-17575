@@ -89,7 +89,7 @@ public class TeleOpPetkotron_2000 extends OpMode {
         // set power of each motor to the value of the y left stick.
         if(abs(fb_movement) > abs(strafe_movement)) {
             if(abs(fb_movement) <= 0.75) {
-                fb_movement = fb_movement*0.2;
+                fb_movement = fb_movement*0.5;
             }
             frontLeftPower = fb_movement;
             frontRightPower = fb_movement;
@@ -98,9 +98,9 @@ public class TeleOpPetkotron_2000 extends OpMode {
         }
 
         if(abs(strafe_movement) > abs(fb_movement)) {
-            frontLeftPower = strafe_movement;
+            frontLeftPower = -strafe_movement;
             frontRightPower = strafe_movement;
-            rearLeftPower = -strafe_movement;
+            rearLeftPower = strafe_movement;
             rearRightPower = -strafe_movement;
         }
 
@@ -132,13 +132,13 @@ public class TeleOpPetkotron_2000 extends OpMode {
         }
 
         if(gamepad1.left_stick_button) {
-            robot.rightClaw.setDirection(Servo.Direction.REVERSE);
-            robot.leftClaw.setDirection(Servo.Direction.REVERSE);
+            robot.rightClaw.setPosition(1);
+            robot.leftClaw.setPosition(1);
         }
 
         if(gamepad1.right_stick_button) {
-            robot.rightClaw.setDirection(Servo.Direction.FORWARD);
-            robot.leftClaw.setDirection(Servo.Direction.FORWARD);
+            robot.rightClaw.setPosition(0);
+            robot.leftClaw.setPosition(0);
         }
 
         // Show the elapsed game time and wheel power.
