@@ -29,11 +29,17 @@
 
 package org.firstinspires.ftc.teamcode;
 
+import com.qualcomm.hardware.bosch.BNO055IMU;
 import com.qualcomm.robotcore.hardware.DcMotor;
 import com.qualcomm.robotcore.hardware.DcMotorSimple;
 import com.qualcomm.robotcore.hardware.HardwareMap;
 import com.qualcomm.robotcore.hardware.Servo;
 import com.qualcomm.robotcore.util.ElapsedTime;
+
+import org.firstinspires.ftc.robotcore.external.navigation.AngleUnit;
+import org.firstinspires.ftc.robotcore.external.navigation.AxesOrder;
+import org.firstinspires.ftc.robotcore.external.navigation.AxesReference;
+import org.firstinspires.ftc.robotcore.external.navigation.Orientation;
 
 /**
  * This is NOT an opmode.
@@ -53,6 +59,11 @@ public class HardwarePetkoTron_2000 {
     public Servo leftClaw = null;
     public Servo rightClaw = null;
 
+    //Integrated Gyro
+    public BNO055IMU imu = null;
+    public BNO055IMU.Parameters parameters = new BNO055IMU.Parameters();
+    public Orientation angles;
+
     //Common positions and power levels for servos and motors
     public static final double INITIAL_CLAW = 1.0;
     public static final double ARM_UP_POWER = 1.0;
@@ -71,6 +82,15 @@ public class HardwarePetkoTron_2000 {
     public void init(HardwareMap ahwMap) {
         //Save reference to Hardware map
         hwMap = ahwMap;
+
+        //Initialize gyro
+        imu = hwMap.get(BNO055IMU.class, "imu");
+        parameters.mode = BNO055IMU.SensorMode.IMU;
+        parameters.angleUnit = BNO055IMU.AngleUnit.DEGREES;
+        parameters.accelUnit = BNO055IMU.AccelUnit.METERS_PERSEC_PERSEC;
+        parameters.loggingEnabled = true;
+        imu.initialize(parameters);
+        angles = imu.getAngularOrientation(AxesReference.EXTRINSIC, AxesOrder.ZYX, AngleUnit.DEGREES);
 
         //Define and initialize motors
         leftFrontDrive = hwMap.get(DcMotor.class, "left_front_drive");
@@ -103,8 +123,34 @@ public class HardwarePetkoTron_2000 {
         //Define and initialize ALL installed servos.
         leftClaw  = hwMap.get(Servo.class, "left_claw");
         rightClaw = hwMap.get(Servo.class, "right_claw");
+        leftClaw.setDirection(Servo.Direction.FORWARD);
+        rightClaw.setDirection(Servo.Direction.REVERSE);
         leftClaw.setPosition(INITIAL_CLAW);
         rightClaw.setPosition(INITIAL_CLAW);
+    }
+
+    //Reads the orientation of the robot
+    public double getHeading() {
+        double previousHeading = 0;
+        double integratedHeading = 0;
+        double currentHeading = angles.firstAngle;
+        double deltaHeading = currentHeading - previousHeading;
+
+        if(deltaHeading < 180) {
+            deltaHeading += 360;
+        } else if (deltaHeading >= 180) {
+            deltaHeading -= 360;
+        }
+
+        integratedHeading += deltaHeading;
+        previousHeading = currentHeading;
+
+        return integratedHeading;
+    }
+
+    //Resets the gyro heading to zero
+    public void resetAngle() {
+
     }
  }
 

@@ -29,6 +29,7 @@
 
 package org.firstinspires.ftc.teamcode;
 
+import com.qualcomm.hardware.bosch.BNO055IMU;
 import com.qualcomm.robotcore.eventloop.opmode.OpMode;
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
 import com.qualcomm.robotcore.hardware.Servo;
@@ -76,13 +77,16 @@ public class TeleOpPetkotron_2000 extends OpMode {
     @Override
     public void loop() {
         // Setup a variable for each drive wheel to save power level for telemetry
+
         double frontLeftPower = 0;
         double frontRightPower = 0;
         double rearLeftPower = 0;
         double rearRightPower = 0;
 
-        double fb_movement = -gamepad1.left_stick_y;
-        double strafe_movement = -gamepad1.left_stick_x;
+        double gyro_radians = robot.getHeading() * (Math.PI/180);
+
+        double fb_movement = (-gamepad1.left_stick_y * (Math.cos(gyro_radians)) + (gamepad1.left_stick_x * Math.sin(gyro_radians)));
+        double strafe_movement = (gamepad1.left_stick_y * Math.sin(gyro_radians)) + (gamepad1.left_stick_x * Math.cos(gyro_radians));
         double rotation_movement = -gamepad1.right_stick_x;
 
         // If the y of the left stick is greater (absolute) than the x of the left stick,
@@ -119,30 +123,31 @@ public class TeleOpPetkotron_2000 extends OpMode {
         //leftPower    = Range.clip(drive + turn, -1.0, 1.0) ;
         //rightPower   = Range.clip(drive - turn, -1.0, 1.0) ;
 
-        if(gamepad1.dpad_up) {
+        if(gamepad1.left_bumper) {
             robot.arm.setPower(robot.ARM_UP_POWER);
         } else {
             robot.arm.setPower(0);
         }
 
-        if(gamepad1.dpad_down) {
+        if(gamepad1.right_bumper) {
             robot.arm.setPower(robot.ARM_DOWN_POWER);
         } else {
             robot.arm.setPower(0);
         }
 
-        if(gamepad1.left_stick_button) {
-            robot.rightClaw.setPosition(1);
-            robot.leftClaw.setPosition(1);
+        if(gamepad1.left_trigger > 0) {
+            robot.rightClaw.setPosition(Range.clip(robot.rightClaw.getPosition()+0.2,0,1));
+            robot.leftClaw.setPosition(Range.clip(robot.leftClaw.getPosition()+0.2,0,1));
         }
 
-        if(gamepad1.right_stick_button) {
-            robot.rightClaw.setPosition(-1);
-            robot.leftClaw.setPosition(-1);
+        if(gamepad1.right_trigger > 0) {
+            robot.rightClaw.setPosition(Range.clip(robot.rightClaw.getPosition()-0.2,0,1));
+            robot.leftClaw.setPosition(Range.clip(robot.leftClaw.getPosition()-0.2,0,1));
         }
 
         // Show the elapsed game time and wheel power.
         telemetry.addData("Status", "Run Time: " + runtime.toString());
+        telemetry.addData("Angle","Current Angle: " + robot.angles.firstAngle);
         telemetry.addData("Motors", "front left (%.2f), front right (%.2f), rear left (%.2f), rear right (%.2f)", frontLeftPower, frontRightPower, rearLeftPower, rearRightPower);
     }
 
@@ -152,6 +157,7 @@ public class TeleOpPetkotron_2000 extends OpMode {
     @Override
     public void stop() {
         robot.arm.setPower(0);
+        telemetry.addData("Status", "Stopped");
     }
 
 }
