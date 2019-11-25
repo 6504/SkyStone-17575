@@ -1,11 +1,12 @@
 package org.firstinspires.ftc.teamcode;
 
+import com.qualcomm.robotcore.eventloop.opmode.Autonomous;
 import com.qualcomm.robotcore.eventloop.opmode.Disabled;
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
 import com.qualcomm.robotcore.util.ElapsedTime;
 
-@TeleOp(name="PetkoTron_2000: AutonomousOp", group="PetkoTron_2000")
+@Autonomous(name="PetkoTron_2000: AutonomousOp", group="PetkoTron_2000")
 //@Disabled
 public class AutonomousOpPetkotron_2000 extends LinearOpMode {
 

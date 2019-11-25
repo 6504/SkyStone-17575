@@ -37,6 +37,7 @@ import com.qualcomm.robotcore.util.ElapsedTime;
 import com.qualcomm.robotcore.util.Range;
 
 import static java.lang.Math.abs;
+import static java.lang.Math.sin;
 
 @TeleOp(name="PetkoTron_2000: TeleOp", group="PetkoTron_2000")
 //@Disabled
@@ -76,53 +77,15 @@ public class TeleOpPetkotron_2000 extends OpMode {
      */
     @Override
     public void loop() {
-        // Setup a variable for each drive wheel to save power level for telemetry
-
-        double frontLeftPower = 0;
-        double frontRightPower = 0;
-        double rearLeftPower = 0;
-        double rearRightPower = 0;
-
-        double gyro_radians = robot.getHeading() * (Math.PI/180);
-
-        double fb_movement = (-gamepad1.left_stick_y * (Math.cos(gyro_radians)) + (gamepad1.left_stick_x * Math.sin(gyro_radians)));
-        double strafe_movement = (gamepad1.left_stick_y * Math.sin(gyro_radians)) + (gamepad1.left_stick_x * Math.cos(gyro_radians));
-        double rotation_movement = -gamepad1.right_stick_x;
-
-        // If the y of the left stick is greater (absolute) than the x of the left stick,
-        // set power of each motor to the value of the y left stick.
-        if(abs(fb_movement) > abs(strafe_movement)) {
-            if(abs(fb_movement) <= 0.75) {
-                fb_movement = fb_movement*0.5;
-            }
-            frontLeftPower = fb_movement;
-            frontRightPower = fb_movement;
-            rearLeftPower = fb_movement;
-            rearRightPower = fb_movement;
-        }
-
-        if(abs(strafe_movement) > abs(fb_movement)) {
-            frontLeftPower = -strafe_movement;
-            frontRightPower = strafe_movement;
-            rearLeftPower = strafe_movement;
-            rearRightPower = -strafe_movement;
-        }
-
-        frontLeftPower=Range.clip(frontLeftPower-rotation_movement,-1.0,1.0);
-        rearLeftPower=Range.clip(rearLeftPower-rotation_movement,-1.0,1.0);
-        frontRightPower=Range.clip(frontRightPower+rotation_movement,-1.0,1.0);
-        rearRightPower=Range.clip(rearRightPower+rotation_movement,-1.0,1.0);
-
-        robot.leftFrontDrive.setPower(frontLeftPower);
-        robot.rightFrontDrive.setPower(frontRightPower);
-        robot.leftBackDrive.setPower(rearLeftPower);
-        robot.rightBackDrive.setPower(rearRightPower);
-
         //double drive = -gamepad1.left_stick_y;
         //double turn  =  gamepad1.right_stick_x;
         //leftPower    = Range.clip(drive + turn, -1.0, 1.0) ;
         //rightPower   = Range.clip(drive - turn, -1.0, 1.0) ;
 
+        //Setting the robot to use field-oriented drive
+        robot.PetkoTronDrive(gamepad1.left_stick_x, gamepad1.left_stick_y, gamepad1.right_stick_x, true);
+
+        //Controlling the arm (up and down)
         if(gamepad1.left_bumper) {
             robot.arm.setPower(robot.ARM_UP_POWER);
         } else {
@@ -135,6 +98,7 @@ public class TeleOpPetkotron_2000 extends OpMode {
             robot.arm.setPower(0);
         }
 
+        //Controlling the claw (open and close)
         if(gamepad1.left_trigger > 0) {
             robot.rightClaw.setPosition(Range.clip(robot.rightClaw.getPosition()+0.2,0,1));
             robot.leftClaw.setPosition(Range.clip(robot.leftClaw.getPosition()+0.2,0,1));
@@ -147,8 +111,8 @@ public class TeleOpPetkotron_2000 extends OpMode {
 
         // Show the elapsed game time and wheel power.
         telemetry.addData("Status", "Run Time: " + runtime.toString());
-        telemetry.addData("Angle","Current Angle: " + robot.angles.firstAngle);
-        telemetry.addData("Motors", "front left (%.2f), front right (%.2f), rear left (%.2f), rear right (%.2f)", frontLeftPower, frontRightPower, rearLeftPower, rearRightPower);
+        telemetry.addData("Current Heading: ", robot.getHeading());
+        telemetry.addData("Motors", "front left (%.2f), front right (%.2f), rear left (%.2f), rear right (%.2f)", robot.frontLeftPower, robot.frontRightPower, robot.rearLeftPower, robot.rearRightPower);
     }
 
     /*

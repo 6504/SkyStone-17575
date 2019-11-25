@@ -30,16 +30,21 @@
 package org.firstinspires.ftc.teamcode;
 
 import com.qualcomm.hardware.bosch.BNO055IMU;
+import com.qualcomm.hardware.bosch.JustLoggingAccelerationIntegrator;
 import com.qualcomm.robotcore.hardware.DcMotor;
 import com.qualcomm.robotcore.hardware.DcMotorSimple;
 import com.qualcomm.robotcore.hardware.HardwareMap;
 import com.qualcomm.robotcore.hardware.Servo;
 import com.qualcomm.robotcore.util.ElapsedTime;
+import com.qualcomm.robotcore.util.Range;
 
 import org.firstinspires.ftc.robotcore.external.navigation.AngleUnit;
 import org.firstinspires.ftc.robotcore.external.navigation.AxesOrder;
 import org.firstinspires.ftc.robotcore.external.navigation.AxesReference;
 import org.firstinspires.ftc.robotcore.external.navigation.Orientation;
+
+import static java.lang.Math.abs;
+import static java.lang.Math.sin;
 
 /**
  * This is NOT an opmode.
@@ -59,15 +64,20 @@ public class HardwarePetkoTron_2000 {
     public Servo leftClaw = null;
     public Servo rightClaw = null;
 
-    //Integrated Gyro
-    public BNO055IMU imu = null;
-    public BNO055IMU.Parameters parameters = new BNO055IMU.Parameters();
-    public Orientation angles;
+    //Integrated Gyro and angles to be used in getHeading()
+    public BNO055IMU imu;
+    private double previousHeading = 0;
+    private double integratedHeading = 0;
 
     //Common positions and power levels for servos and motors
     public static final double INITIAL_CLAW = 1.0;
     public static final double ARM_UP_POWER = 1.0;
     public static final double ARM_DOWN_POWER = -0.5;
+    public double frontLeftPower = 0;
+    public double frontRightPower = 0;
+    public double rearLeftPower = 0;
+    public double rearRightPower = 0;
+
 
     /* local OpMode members. */
     HardwareMap hwMap =  null;
@@ -83,14 +93,16 @@ public class HardwarePetkoTron_2000 {
         //Save reference to Hardware map
         hwMap = ahwMap;
 
-        //Initialize gyro
+        //Initializing the gyro and setting the parameters for recording the angles
         imu = hwMap.get(BNO055IMU.class, "imu");
-        parameters.mode = BNO055IMU.SensorMode.IMU;
+        BNO055IMU.Parameters parameters = new BNO055IMU.Parameters();
         parameters.angleUnit = BNO055IMU.AngleUnit.DEGREES;
         parameters.accelUnit = BNO055IMU.AccelUnit.METERS_PERSEC_PERSEC;
+        parameters.calibrationDataFile = "BNO055IMUCalibration.json"; // see the calibration sample opmode
         parameters.loggingEnabled = true;
+        parameters.loggingTag = "IMU";
+        parameters.accelerationIntegrationAlgorithm = new JustLoggingAccelerationIntegrator();
         imu.initialize(parameters);
-        angles = imu.getAngularOrientation(AxesReference.EXTRINSIC, AxesOrder.ZYX, AngleUnit.DEGREES);
 
         //Define and initialize motors
         leftFrontDrive = hwMap.get(DcMotor.class, "left_front_drive");
@@ -129,28 +141,71 @@ public class HardwarePetkoTron_2000 {
         rightClaw.setPosition(INITIAL_CLAW);
     }
 
-    //Reads the orientation of the robot
+    //Getting and returning the current header (goes from (-inf, inf) as opposed to (-180, 180))
     public double getHeading() {
-        double previousHeading = 0;
-        double integratedHeading = 0;
-        double currentHeading = angles.firstAngle;
+        double currentHeading = imu.getAngularOrientation(AxesReference.INTRINSIC, AxesOrder.ZYX, AngleUnit.DEGREES).firstAngle;
         double deltaHeading = currentHeading - previousHeading;
 
-        if(deltaHeading < 180) {
+        //Shifting the heading so that it doesn't display as between -180 and 180
+        if (deltaHeading < -180) {
             deltaHeading += 360;
         } else if (deltaHeading >= 180) {
             deltaHeading -= 360;
         }
-
         integratedHeading += deltaHeading;
         previousHeading = currentHeading;
 
         return integratedHeading;
     }
 
-    //Resets the gyro heading to zero
-    public void resetAngle() {
+    //General method for actually driving the robot. Can use field-oriented drive or robot-oriented drive.
+    public void PetkoTronDrive(double xInput, double yInput, double zInput, boolean fieldDrive) {
+        //Values for moving
+        double fb_movement = 0;
+        double strafe_movement = 0;
+        double rotation_movement = -zInput;
 
+        //Setting variables for using field-oriented drive
+        if(fieldDrive) {
+            double forward = Range.clip(-yInput, -1.0, 1.0);
+            double strafe = Range.clip(-xInput, -1.0, 1.0);
+            double gyroRadians = getHeading() * (Math.PI/180);
+
+            fb_movement = (forward * Math.cos(gyroRadians)) + (strafe * Math.sin(gyroRadians));
+            strafe_movement = (-forward * sin(gyroRadians)) + (strafe * Math.cos(gyroRadians));
+        } else { //Using robot-oriented drive
+            fb_movement = -yInput;
+            strafe_movement = -xInput;
+        }
+
+        //If the y of the left stick is greater (absolute) than the x of the left stick,
+        //set power of each motor to the value of the y left stick.
+        if(abs(fb_movement) > abs(strafe_movement)) {
+            if(abs(fb_movement) <= 0.75) {
+                fb_movement = fb_movement*0.5;
+            }
+            frontLeftPower = fb_movement;
+            frontRightPower = fb_movement;
+            rearLeftPower = fb_movement;
+            rearRightPower = fb_movement;
+        }
+
+        if(abs(strafe_movement) > abs(fb_movement)) {
+            frontLeftPower = -strafe_movement;
+            frontRightPower = strafe_movement;
+            rearLeftPower = strafe_movement;
+            rearRightPower = -strafe_movement;
+        }
+
+        frontLeftPower=Range.clip(frontLeftPower-rotation_movement,-1.0,1.0);
+        rearLeftPower=Range.clip(rearLeftPower-rotation_movement,-1.0,1.0);
+        frontRightPower=Range.clip(frontRightPower+rotation_movement,-1.0,1.0);
+        rearRightPower=Range.clip(rearRightPower+rotation_movement,-1.0,1.0);
+
+        leftFrontDrive.setPower(frontLeftPower);
+        rightFrontDrive.setPower(frontRightPower);
+        leftBackDrive.setPower(rearLeftPower);
+        rightBackDrive.setPower(rearRightPower);
     }
  }
 
