@@ -23,6 +23,7 @@ public class RightBasicPetkotron_2000 extends LinearOpMode {
     @Override
     public void runOpMode() throws InterruptedException {
         robot.init(hardwareMap);
+        robot.resetEncoders();
         runtime.reset();
         telemetry.addData("Status", "Initialized");
         telemetry.update();
