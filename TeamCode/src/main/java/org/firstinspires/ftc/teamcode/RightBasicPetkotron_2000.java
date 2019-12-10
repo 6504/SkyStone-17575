@@ -6,9 +6,9 @@ import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
 import com.qualcomm.robotcore.util.ElapsedTime;
 
-@Autonomous(name="PetkoTron_2000: AutonomousOp", group="PetkoTron_2000")
+@Autonomous(name="PetkoTron_2000: RIGHT BASIC", group="PetkoTron_2000")
 //@Disabled
-public class AutonomousOpPetkotron_2000 extends LinearOpMode {
+public class RightBasicPetkotron_2000 extends LinearOpMode {
 
     //Declare OpMode members.
     private ElapsedTime runtime = new ElapsedTime();
@@ -23,11 +23,11 @@ public class AutonomousOpPetkotron_2000 extends LinearOpMode {
     @Override
     public void runOpMode() throws InterruptedException {
         robot.init(hardwareMap);
+        robot.resetEncoders();
         runtime.reset();
         telemetry.addData("Status", "Initialized");
         telemetry.update();
         while (opModeIsActive()) {
-
 
             telemetry.addData("Status", "Run Time: " + runtime.toString());
             telemetry.update();
