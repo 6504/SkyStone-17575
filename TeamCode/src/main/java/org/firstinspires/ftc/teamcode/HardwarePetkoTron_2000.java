@@ -32,7 +32,6 @@ package org.firstinspires.ftc.teamcode;
 import com.qualcomm.hardware.bosch.BNO055IMU;
 import com.qualcomm.hardware.bosch.JustLoggingAccelerationIntegrator;
 import com.qualcomm.robotcore.hardware.DcMotor;
-import com.qualcomm.robotcore.hardware.DcMotorSimple;
 import com.qualcomm.robotcore.hardware.HardwareMap;
 import com.qualcomm.robotcore.hardware.Servo;
 import com.qualcomm.robotcore.util.ElapsedTime;
@@ -41,10 +40,8 @@ import com.qualcomm.robotcore.util.Range;
 import org.firstinspires.ftc.robotcore.external.navigation.AngleUnit;
 import org.firstinspires.ftc.robotcore.external.navigation.AxesOrder;
 import org.firstinspires.ftc.robotcore.external.navigation.AxesReference;
-import org.firstinspires.ftc.robotcore.external.navigation.Orientation;
 
 import static java.lang.Math.abs;
-import static java.lang.Math.sin;
 
 /**
  * This is NOT an opmode.
@@ -68,6 +65,9 @@ public class HardwarePetkoTron_2000 {
     public BNO055IMU imu;
     private double previousHeading = 0;
     private double integratedHeading = 0;
+
+    public PIDController pidDrive;
+    public double desiredHeading = 0;
 
     //Common positions and power levels for servos and motors
     public static final double INITIAL_CLAW = 1.0;
@@ -103,6 +103,13 @@ public class HardwarePetkoTron_2000 {
         parameters.loggingTag = "IMU";
         parameters.accelerationIntegrationAlgorithm = new JustLoggingAccelerationIntegrator();
         imu.initialize(parameters);
+
+        // Set up parameters for driving in a straight line.
+        pidDrive = new PIDController(.05, 0, 0);
+        pidDrive.setSetpoint(0);
+        pidDrive.setOutputRange(0, 1);
+        pidDrive.setInputRange(-90, 90);
+        pidDrive.enable();
 
         //Define and initialize motors
         leftFrontDrive = hwMap.get(DcMotor.class, "left_front_drive");
@@ -158,21 +165,40 @@ public class HardwarePetkoTron_2000 {
         return integratedHeading;
     }
 
+
     //General method for actually driving the robot. Can use field-oriented drive or robot-oriented drive.
     public void PetkoTronDrive(double xInput, double yInput, double zInput, boolean fieldDrive) {
-        //Values for moving
-        double fb_movement = 0;
-        double strafe_movement = 0;
-        double rotation_movement = -zInput;
 
+
+        // Use PID with imu input to drive in a straight line.
+        // https://stemrobotics.cs.pdx.edu/node/7268
+        double correction = 0;
+        if (zInput == 0) {
+            // Apply PID correction if we don't want to rotate
+            correction = pidDrive.performPID(getHeading() - desiredHeading);
+        } else {
+            // Save the current heading as the desired heading if we are rotating
+            // Also, don't apply a correction
+            desiredHeading = getHeading();
+        }
+
+        //Values for moving
+        double fb_movement;
+        double strafe_movement;
+        double rotation_movement = -zInput + correction;
+
+        double heading = getHeading();
+        /*if (getHeading() < 20 && getHeading() > -20) {
+            heading = 0;
+        }*/
         //Setting variables for using field-oriented drive
         if(fieldDrive) {
             double forward = Range.clip(-yInput, -1.0, 1.0);
             double strafe = Range.clip(-xInput, -1.0, 1.0);
-            double gyroRadians = getHeading() * (Math.PI/180);
+            double gyroRadians = heading * (Math.PI/180);
 
             fb_movement = (forward * Math.cos(gyroRadians)) + (strafe * Math.sin(gyroRadians));
-            strafe_movement = (-forward * sin(gyroRadians)) + (strafe * Math.cos(gyroRadians));
+            strafe_movement = (-forward * Math.sin(gyroRadians)) + (strafe * Math.cos(gyroRadians));
         } else { //Using robot-oriented drive
             fb_movement = -yInput;
             strafe_movement = -xInput;
@@ -180,27 +206,31 @@ public class HardwarePetkoTron_2000 {
 
         //If the y of the left stick is greater (absolute) than the x of the left stick,
         //set power of each motor to the value of the y left stick.
-        if(abs(fb_movement) > abs(strafe_movement)) {
-            if(abs(fb_movement) <= 0.75) {
+        /*if(abs(fb_movement) > abs(strafe_movement)) {
+            /*if(abs(fb_movement) <= 0.75) {
                 fb_movement = fb_movement*0.5;
             }
             frontLeftPower = fb_movement;
             frontRightPower = fb_movement;
             rearLeftPower = fb_movement;
             rearRightPower = fb_movement;
-        }
-
-        if(abs(strafe_movement) > abs(fb_movement)) {
+        } else {
             frontLeftPower = -strafe_movement;
             frontRightPower = strafe_movement;
             rearLeftPower = strafe_movement;
             rearRightPower = -strafe_movement;
-        }
+        }*/
 
-        frontLeftPower=Range.clip(frontLeftPower-rotation_movement,-1.0,1.0);
-        rearLeftPower=Range.clip(rearLeftPower-rotation_movement,-1.0,1.0);
-        frontRightPower=Range.clip(frontRightPower+rotation_movement,-1.0,1.0);
-        rearRightPower=Range.clip(rearRightPower+rotation_movement,-1.0,1.0);
+
+        frontLeftPower = fb_movement-strafe_movement;
+        frontRightPower = fb_movement+strafe_movement;
+        rearLeftPower = fb_movement+strafe_movement;
+        rearRightPower = fb_movement-strafe_movement;
+
+        frontLeftPower=Range.clip(frontLeftPower-rotation_movement,-0.5,0.5);
+        rearLeftPower=Range.clip(rearLeftPower-rotation_movement,-0.5,0.5);
+        frontRightPower=Range.clip(frontRightPower+rotation_movement,-0.5,0.5);
+        rearRightPower=Range.clip(rearRightPower+rotation_movement,-0.5,0.5);
 
         leftFrontDrive.setPower(frontLeftPower);
         rightFrontDrive.setPower(frontRightPower);

@@ -82,9 +82,22 @@ public class TeleOpPetkotron_2000 extends OpMode {
         //leftPower    = Range.clip(drive + turn, -1.0, 1.0) ;
         //rightPower   = Range.clip(drive - turn, -1.0, 1.0) ;
 
-        //Setting the robot to use field-oriented drive
-        robot.PetkoTronDrive(gamepad1.left_stick_x, gamepad1.left_stick_y, gamepad1.right_stick_x, true);
+        double xInput = gamepad1.left_stick_x;
+        double yInput = gamepad1.left_stick_y;
+        double zInput = gamepad1.right_stick_x;
 
+        if (abs(xInput) < 0.1) {
+            xInput = 0;
+        }
+        if (abs(yInput) < 0.1) {
+            yInput = 0;
+        }
+        if (abs(zInput) < 0.1) {
+            zInput = 0;
+        }
+
+        //Setting the robot to use field-oriented drive
+        robot.PetkoTronDrive(xInput, yInput, zInput, true);
         //Controlling the arm (up and down)
         if(gamepad1.left_bumper) {
             robot.arm.setPower(robot.ARM_UP_POWER);
@@ -112,6 +125,10 @@ public class TeleOpPetkotron_2000 extends OpMode {
         // Show the elapsed game time and wheel power.
         telemetry.addData("Status", "Run Time: " + runtime.toString());
         telemetry.addData("Current Heading: ", robot.getHeading());
+        telemetry.addData("Desired Heading: ", robot.desiredHeading);
+        telemetry.addData("Joystick x value:", xInput);
+        telemetry.addData("Joystick y value:", yInput);
+        telemetry.addData("Joystick z value:", zInput);
         telemetry.addData("Motors", "front left (%.2f), front right (%.2f), rear left (%.2f), rear right (%.2f)", robot.frontLeftPower, robot.frontRightPower, robot.rearLeftPower, robot.rearRightPower);
     }
 
