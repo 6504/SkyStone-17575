@@ -97,7 +97,7 @@ public class TeleOpPetkotron_2000 extends OpMode {
         }
 
         //Setting the robot to use field-oriented drive
-        robot.PetkoTronDrive(xInput, yInput, zInput, true);
+        robot.PetkoTronDrive(xInput, yInput, zInput, false);
         //Controlling the arm (up and down)
         if(gamepad1.left_bumper) {
             robot.arm.setPower(robot.ARM_UP_POWER);

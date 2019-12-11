@@ -183,7 +183,7 @@ public class HardwarePetkoTron_2000 {
         double correction = 0;
         if (zInput == 0) {
             // Apply PID correction if we don't want to rotate
-            correction = pidDrive.performPID(getHeading() - desiredHeading);
+            //correction = pidDrive.performPID(getHeading() - desiredHeading);
         } else {
             // Save the current heading as the desired heading if we are rotating
             // Also, don't apply a correction
@@ -208,8 +208,8 @@ public class HardwarePetkoTron_2000 {
             fb_movement = (forward * Math.cos(gyroRadians)) + (strafe * Math.sin(gyroRadians));
             strafe_movement = (-forward * Math.sin(gyroRadians)) + (strafe * Math.cos(gyroRadians));
         } else { //Using robot-oriented drive
-            fb_movement = -yInput;
-            strafe_movement = -xInput;
+            fb_movement = yInput;
+            strafe_movement = xInput;
         }
 
         //If the y of the left stick is greater (absolute) than the x of the left stick,
