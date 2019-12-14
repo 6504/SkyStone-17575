@@ -84,7 +84,7 @@ public class TeleOpPetkotron_2000 extends OpMode {
 
         double xInput = gamepad1.left_stick_x;
         double yInput = gamepad1.left_stick_y;
-        double zInput = gamepad1.right_stick_x;
+        double zInput = -gamepad1.right_stick_x;
 
         if (abs(xInput) < 0.1) {
             xInput = 0;
