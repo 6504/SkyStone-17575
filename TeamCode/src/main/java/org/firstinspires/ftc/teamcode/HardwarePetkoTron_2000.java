@@ -32,6 +32,7 @@ package org.firstinspires.ftc.teamcode;
 import com.qualcomm.hardware.bosch.BNO055IMU;
 import com.qualcomm.hardware.bosch.JustLoggingAccelerationIntegrator;
 import com.qualcomm.robotcore.hardware.DcMotor;
+import com.qualcomm.robotcore.hardware.DcMotorSimple;
 import com.qualcomm.robotcore.hardware.HardwareMap;
 import com.qualcomm.robotcore.hardware.Servo;
 import com.qualcomm.robotcore.util.ElapsedTime;
@@ -58,6 +59,11 @@ public class HardwarePetkoTron_2000 {
 
     //Arm Motor and Claw Servos
     public DcMotor arm = null;
+    public int armRetractedPosition;
+    public int armExtendedPosition = 1000;
+    public DcMotor armPivot = null;
+    public DcMotor leftIntake = null;
+    public DcMotor rightIntake = null;
     public Servo leftClaw = null;
     public Servo rightClaw = null;
 
@@ -117,12 +123,18 @@ public class HardwarePetkoTron_2000 {
         rightFrontDrive = hwMap.get(DcMotor.class, "right_front_drive");
         rightBackDrive = hwMap.get(DcMotor.class, "right_back_drive");
         arm = hwMap.get(DcMotor.class, "arm");
+        armPivot = hwMap.get(DcMotor.class, "arm_pivot");
+        leftIntake = hwMap.get(DcMotor.class, "left_intake");
+        rightIntake = hwMap.get(DcMotor.class, "right_intake");
 
         leftFrontDrive.setDirection(DcMotor.Direction.FORWARD);
         leftBackDrive.setDirection(DcMotor.Direction.REVERSE);
         rightFrontDrive.setDirection(DcMotor.Direction.FORWARD);
         rightBackDrive.setDirection(DcMotor.Direction.REVERSE);
         arm.setDirection(DcMotor.Direction.REVERSE);
+        armPivot.setDirection(DcMotor.Direction.FORWARD);
+        leftIntake.setDirection(DcMotor.Direction.REVERSE);
+        rightIntake.setDirection(DcMotor.Direction.FORWARD);
 
         //Set all motors to zero power
         leftFrontDrive.setPower(0);
@@ -130,6 +142,9 @@ public class HardwarePetkoTron_2000 {
         rightFrontDrive.setPower(0);
         rightBackDrive.setPower(0);
         arm.setPower(0);
+        armPivot.setPower(0);
+        leftIntake.setPower(0);
+        rightIntake.setPower(0);
 
         //Set all motors to run with encoders.
         //May want to use RUN_USING_ENCODERS if encoders are installed.
@@ -138,14 +153,17 @@ public class HardwarePetkoTron_2000 {
         rightFrontDrive.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
         rightBackDrive.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
         arm.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
+        armPivot.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
 
         //Define and initialize ALL installed servos.
         leftClaw  = hwMap.get(Servo.class, "left_claw");
         rightClaw = hwMap.get(Servo.class, "right_claw");
         leftClaw.setDirection(Servo.Direction.FORWARD);
         rightClaw.setDirection(Servo.Direction.REVERSE);
-        leftClaw.setPosition(INITIAL_CLAW);
-        rightClaw.setPosition(INITIAL_CLAW);
+        //leftClaw.setPosition(INITIAL_CLAW);
+        //rightClaw.setPosition(INITIAL_CLAW);
+
+        armRetractedPosition = arm.getCurrentPosition();
     }
 
     public void resetEncoders() {
@@ -154,6 +172,7 @@ public class HardwarePetkoTron_2000 {
         rightFrontDrive.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
         rightBackDrive.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
         arm.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
+        armPivot.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
     }
 
     //Getting and returning the current header (goes from (-inf, inf) as opposed to (-180, 180))
