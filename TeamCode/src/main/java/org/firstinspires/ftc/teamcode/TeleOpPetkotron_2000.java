@@ -46,6 +46,8 @@ public class TeleOpPetkotron_2000 extends OpMode {
     private ElapsedTime runtime = new ElapsedTime();
     HardwarePetkoTron_2000 robot = new HardwarePetkoTron_2000();
 
+    int initPosition = 0;
+
     /*
      * Code to run ONCE when the driver hits INIT
      */
@@ -53,6 +55,7 @@ public class TeleOpPetkotron_2000 extends OpMode {
     public void init() {
         //telemetry.addData("Status", "Initialized");
         robot.init(hardwareMap);
+        initPosition = robot.arm.getCurrentPosition();
         // Tell the driver that initialization is complete.
         telemetry.addData("Status", "Initialized");
     }
@@ -99,12 +102,12 @@ public class TeleOpPetkotron_2000 extends OpMode {
         //Setting the robot to use field-oriented drive
         robot.PetkoTronDrive(xInput, yInput, zInput, false);
         //Controlling the arm (up and down)
-        if(gamepad1.left_bumper) {
+        if(gamepad1.right_bumper) {
             //if (robot.arm.getCurrentPosition() < robot.armExtendedPosition) {
                 robot.arm.setPower(robot.ARM_UP_POWER);
             //}
-        } else if(gamepad1.right_bumper) {
-            //if (robot.arm.getCurrentPosition() > robot.armRetractedPosition) {
+        } else if(gamepad1.left_bumper) {
+            //if (robot.arm.getCurrentPosition() >= 0) {
                 robot.arm.setPower(robot.ARM_DOWN_POWER);
             //}
         } else {
@@ -121,28 +124,30 @@ public class TeleOpPetkotron_2000 extends OpMode {
 
         //Controlling the claw (open and close)
         if(gamepad1.dpad_up) {
-            robot.rightClaw.setPosition(Range.clip(robot.rightClaw.getPosition()+0.2,0,1));
+            robot.rightClaw.setPosition(robot.rightClaw.getPosition()+0.1);
         }
 
         if(gamepad1.dpad_down) {
-            robot.rightClaw.setPosition(Range.clip(robot.rightClaw.getPosition()-0.2,0,1));
+            robot.rightClaw.setPosition(robot.rightClaw.getPosition()-0.1);
         }
         if(gamepad1.dpad_right) {
-            robot.leftClaw.setPosition(Range.clip(robot.leftClaw.getPosition()+0.2,0,1));
+            robot.leftClaw.setPosition(robot.leftClaw.getPosition()+0.1);
         }
 
         if(gamepad1.dpad_right) {
-            robot.leftClaw.setPosition(Range.clip(robot.leftClaw.getPosition()-0.2,0,1));
+            robot.leftClaw.setPosition(robot.leftClaw.getPosition()-0.1);
         }
 
         if(gamepad1.a) {
             robot.leftIntake.setPower(1);
             robot.rightIntake.setPower(1);
+        } else if(gamepad1.b) {
+            robot.leftIntake.setPower(-1);
+            robot.rightIntake.setPower(-1);
         } else {
             robot.leftIntake.setPower(0);
             robot.rightIntake.setPower(0);
         }
-
         // Show the elapsed game time and wheel power.
         telemetry.addData("Status", "Run Time: " + runtime.toString());
         telemetry.addData("Current Heading: ", robot.getHeading());
@@ -150,8 +155,10 @@ public class TeleOpPetkotron_2000 extends OpMode {
         telemetry.addData("Joystick x value:", xInput);
         telemetry.addData("Joystick y value:", yInput);
         telemetry.addData("Joystick z value:", zInput);
-        telemetry.addData("Arm: ", robot.arm.getCurrentPosition() - robot.armRetractedPosition);
+        telemetry.addData("Arm: ", robot.arm.getCurrentPosition());
         telemetry.addData("Motors", "front left (%.2f), front right (%.2f), rear left (%.2f), rear right (%.2f)", robot.frontLeftPower, robot.frontRightPower, robot.rearLeftPower, robot.rearRightPower);
+        telemetry.addData("Right Servo Position",robot.rightClaw.getPosition());
+        telemetry.addData("Left Servo Position", robot.leftClaw.getPosition());
     }
 
     /*
@@ -159,6 +166,7 @@ public class TeleOpPetkotron_2000 extends OpMode {
      */
     @Override
     public void stop() {
+        //robot.arm.setTargetPosition(initPosition);
         robot.arm.setPower(0);
         telemetry.addData("Status", "Stopped");
     }

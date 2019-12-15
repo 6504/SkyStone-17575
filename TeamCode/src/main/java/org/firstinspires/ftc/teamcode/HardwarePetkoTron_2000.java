@@ -59,7 +59,6 @@ public class HardwarePetkoTron_2000 {
 
     //Arm Motor and Claw Servos
     public DcMotor arm = null;
-    public int armRetractedPosition;
     public int armExtendedPosition = 1000;
     public DcMotor armPivot = null;
     public DcMotor leftIntake = null;
@@ -160,10 +159,10 @@ public class HardwarePetkoTron_2000 {
         rightClaw = hwMap.get(Servo.class, "right_claw");
         leftClaw.setDirection(Servo.Direction.FORWARD);
         rightClaw.setDirection(Servo.Direction.REVERSE);
-        //leftClaw.setPosition(INITIAL_CLAW);
-        //rightClaw.setPosition(INITIAL_CLAW);
+        leftClaw.setPosition(INITIAL_CLAW);
+        rightClaw.setPosition(INITIAL_CLAW);
 
-        armRetractedPosition = arm.getCurrentPosition();
+        arm.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
     }
 
     public void resetEncoders() {
@@ -254,10 +253,10 @@ public class HardwarePetkoTron_2000 {
         rearLeftPower = fb_movement+strafe_movement;
         rearRightPower = fb_movement-strafe_movement;
 
-        frontLeftPower=Range.clip(frontLeftPower-rotation_movement,-0.5,0.5);
-        rearLeftPower=Range.clip(rearLeftPower-rotation_movement,-0.5,0.5);
-        frontRightPower=Range.clip(frontRightPower+rotation_movement,-0.5,0.5);
-        rearRightPower=Range.clip(rearRightPower+rotation_movement,-0.5,0.5);
+        frontLeftPower=Range.clip(frontLeftPower-rotation_movement,-0.75,0.75);
+        rearLeftPower=Range.clip(rearLeftPower-rotation_movement,-0.75,0.75);
+        frontRightPower=Range.clip(frontRightPower+rotation_movement,-0.75,0.75);
+        rearRightPower=Range.clip(rearRightPower+rotation_movement,-0.75,0.75);
 
         leftFrontDrive.setPower(frontLeftPower);
         rightFrontDrive.setPower(frontRightPower);
