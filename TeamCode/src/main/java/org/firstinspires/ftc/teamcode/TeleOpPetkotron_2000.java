@@ -68,7 +68,7 @@ public class TeleOpPetkotron_2000 extends OpMode {
     public void init_loop() {
         // Retract the arm
         if (!robot.armZeroLimit.isPressed()) {
-            robot.arm.setPower(robot.ARM_DOWN_LOW_POWER);
+            robot.arm.setPower(robot.ARM_DOWN_POWER);
         } else {
             // Stop retracting the arm
             robot.arm.setPower(0);
@@ -118,12 +118,7 @@ public class TeleOpPetkotron_2000 extends OpMode {
         } else if(gamepad1.x) {
             // Don't move arm more if the limit switch is pressed
             if (!robot.armZeroLimit.isPressed()) {
-                // Use low power near zero
-                if (robot.arm.getCurrentPosition() < 10) {
-                    robot.arm.setPower(robot.ARM_DOWN_LOW_POWER);
-                } else {
-                    robot.arm.setPower(robot.ARM_DOWN_POWER);
-                }
+                robot.arm.setPower(robot.ARM_DOWN_POWER);
             } else {
                 robot.arm.setPower(0);
             }

@@ -82,9 +82,8 @@ public class HardwarePetkoTron_2000 {
 
     //Common positions and power levels for servos and motors
     public static final double INITIAL_CLAW = 1.0;
-    public static final double ARM_UP_POWER = 1.0;
-    public static final double ARM_DOWN_POWER = -1.0;
-    public static final double ARM_DOWN_LOW_POWER = -0.1;
+    public static final double ARM_UP_POWER = 0.2;
+    public static final double ARM_DOWN_POWER = -0.2;
     public double frontLeftPower = 0;
     public double frontRightPower = 0;
     public double rearLeftPower = 0;
