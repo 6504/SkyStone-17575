@@ -67,13 +67,13 @@ public class TeleOpPetkotron_2000 extends OpMode {
     @Override
     public void init_loop() {
         // Retract the arm
-        if (!robot.armZeroLimit.isPressed()) {
+        /*if (!robot.armZeroLimit.isPressed()) {
             robot.arm.setPower(robot.ARM_DOWN_POWER);
         } else {
             // Stop retracting the arm
             robot.arm.setPower(0);
             //robot.arm.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
-        }
+        }*/
     }
 
     /*
@@ -126,6 +126,7 @@ public class TeleOpPetkotron_2000 extends OpMode {
             robot.arm.setPower(0);
         }
 
+
         double armPivotPower = (gamepad1.right_trigger - gamepad1.left_trigger)/2;
         if (abs(armPivotPower) < 0.01) {
             robot.armPivot.setPower(0);
@@ -136,18 +137,18 @@ public class TeleOpPetkotron_2000 extends OpMode {
 
         //Controlling the claw (open and close)
         if(gamepad1.dpad_up) {
-            robot.rightClaw.setPosition(robot.rightClaw.getPosition()+0.1);
+            robot.rightClaw.setPosition(robot.rightClaw.getPosition()+0.011);
         }
 
         if(gamepad1.dpad_down) {
-            robot.rightClaw.setPosition(robot.rightClaw.getPosition()-0.1);
+            robot.rightClaw.setPosition(robot.rightClaw.getPosition()-0.01);
         }
         if(gamepad1.dpad_right) {
-            robot.leftClaw.setPosition(robot.leftClaw.getPosition()+0.1);
+            robot.leftClaw.setPosition(0.3);
         }
 
         if(gamepad1.dpad_left) {
-            robot.leftClaw.setPosition(robot.leftClaw.getPosition()-0.1);
+            robot.leftClaw.setPosition(0.5);
         }
 
         if(gamepad1.a) {
