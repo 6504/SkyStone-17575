@@ -144,11 +144,11 @@ public class TeleOpPetkotron_2000 extends OpMode {
             robot.rightClaw.setPosition(robot.rightClaw.getPosition()-0.01);
         }
         if(gamepad1.dpad_right) {
-            robot.leftClaw.setPosition(0.3);
+            robot.leftClaw.setPosition(robot.leftClaw.getPosition()-0.01);
         }
 
         if(gamepad1.dpad_left) {
-            robot.leftClaw.setPosition(0.5);
+            robot.leftClaw.setPosition(robot.leftClaw.getPosition()+0.01);
         }
 
         if(gamepad1.a) {
