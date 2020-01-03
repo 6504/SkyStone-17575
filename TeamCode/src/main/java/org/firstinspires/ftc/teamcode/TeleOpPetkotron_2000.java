@@ -32,6 +32,7 @@ package org.firstinspires.ftc.teamcode;
 import com.qualcomm.hardware.bosch.BNO055IMU;
 import com.qualcomm.robotcore.eventloop.opmode.OpMode;
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
+import com.qualcomm.robotcore.hardware.DcMotor;
 import com.qualcomm.robotcore.hardware.Servo;
 import com.qualcomm.robotcore.util.ElapsedTime;
 import com.qualcomm.robotcore.util.Range;
@@ -65,6 +66,14 @@ public class TeleOpPetkotron_2000 extends OpMode {
      */
     @Override
     public void init_loop() {
+        // Retract the arm
+        if (!robot.armZeroLimit.isPressed()) {
+            robot.arm.setPower(robot.ARM_DOWN_LOW_POWER);
+        } else {
+            // Stop retracting the arm
+            robot.arm.setPower(0);
+            //robot.arm.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
+        }
     }
 
     /*
@@ -102,19 +111,27 @@ public class TeleOpPetkotron_2000 extends OpMode {
         //Setting the robot to use field-oriented drive
         robot.PetkoTronDrive(xInput, yInput, zInput, false);
         //Controlling the arm (up and down)
-        if(gamepad1.right_bumper) {
+        if(gamepad1.y) {
             //if (robot.arm.getCurrentPosition() < robot.armExtendedPosition) {
                 robot.arm.setPower(robot.ARM_UP_POWER);
             //}
-        } else if(gamepad1.left_bumper) {
-            //if (robot.arm.getCurrentPosition() >= 0) {
-                robot.arm.setPower(robot.ARM_DOWN_POWER);
-            //}
+        } else if(gamepad1.x) {
+            // Don't move arm more if the limit switch is pressed
+            if (!robot.armZeroLimit.isPressed()) {
+                // Use low power near zero
+                if (robot.arm.getCurrentPosition() < 10) {
+                    robot.arm.setPower(robot.ARM_DOWN_LOW_POWER);
+                } else {
+                    robot.arm.setPower(robot.ARM_DOWN_POWER);
+                }
+            } else {
+                robot.arm.setPower(0);
+            }
         } else {
             robot.arm.setPower(0);
         }
 
-        double armPivotPower = gamepad1.right_trigger - gamepad1.left_trigger;
+        double armPivotPower = (gamepad1.right_trigger - gamepad1.left_trigger)/2;
         if (abs(armPivotPower) < 0.01) {
             robot.armPivot.setPower(0);
         }
@@ -134,7 +151,7 @@ public class TeleOpPetkotron_2000 extends OpMode {
             robot.leftClaw.setPosition(robot.leftClaw.getPosition()+0.1);
         }
 
-        if(gamepad1.dpad_right) {
+        if(gamepad1.dpad_left) {
             robot.leftClaw.setPosition(robot.leftClaw.getPosition()-0.1);
         }
 
@@ -150,11 +167,11 @@ public class TeleOpPetkotron_2000 extends OpMode {
         }
         // Show the elapsed game time and wheel power.
         telemetry.addData("Status", "Run Time: " + runtime.toString());
-        telemetry.addData("Current Heading: ", robot.getHeading());
+        /*telemetry.addData("Current Heading: ", robot.getHeading());
         telemetry.addData("Desired Heading: ", robot.desiredHeading);
         telemetry.addData("Joystick x value:", xInput);
         telemetry.addData("Joystick y value:", yInput);
-        telemetry.addData("Joystick z value:", zInput);
+        telemetry.addData("Joystick z value:", zInput);*/
         telemetry.addData("Arm: ", robot.arm.getCurrentPosition());
         telemetry.addData("Motors", "front left (%.2f), front right (%.2f), rear left (%.2f), rear right (%.2f)", robot.frontLeftPower, robot.frontRightPower, robot.rearLeftPower, robot.rearRightPower);
         telemetry.addData("Right Servo Position",robot.rightClaw.getPosition());

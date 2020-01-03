@@ -31,10 +31,12 @@ package org.firstinspires.ftc.teamcode;
 
 import com.qualcomm.hardware.bosch.BNO055IMU;
 import com.qualcomm.hardware.bosch.JustLoggingAccelerationIntegrator;
+import com.qualcomm.hardware.rev.RevTouchSensor;
 import com.qualcomm.robotcore.hardware.DcMotor;
 import com.qualcomm.robotcore.hardware.DcMotorSimple;
 import com.qualcomm.robotcore.hardware.HardwareMap;
 import com.qualcomm.robotcore.hardware.Servo;
+import com.qualcomm.robotcore.hardware.TouchSensor;
 import com.qualcomm.robotcore.util.ElapsedTime;
 import com.qualcomm.robotcore.util.Range;
 
@@ -71,13 +73,18 @@ public class HardwarePetkoTron_2000 {
     private double previousHeading = 0;
     private double integratedHeading = 0;
 
+    // Touch Sensor
+    public TouchSensor armZeroLimit;
+
+    // PID Controller for angle while moving
     public PIDController pidDrive;
     public double desiredHeading = 0;
 
     //Common positions and power levels for servos and motors
     public static final double INITIAL_CLAW = 1.0;
     public static final double ARM_UP_POWER = 1.0;
-    public static final double ARM_DOWN_POWER = -0.5;
+    public static final double ARM_DOWN_POWER = -1.0;
+    public static final double ARM_DOWN_LOW_POWER = -0.1;
     public double frontLeftPower = 0;
     public double frontRightPower = 0;
     public double rearLeftPower = 0;
@@ -109,6 +116,9 @@ public class HardwarePetkoTron_2000 {
         parameters.accelerationIntegrationAlgorithm = new JustLoggingAccelerationIntegrator();
         imu.initialize(parameters);
 
+        // Initialize the touch sensor
+        armZeroLimit = hwMap.touchSensor.get("arm_zero_limit");
+
         // Set up parameters for driving in a straight line.
         pidDrive = new PIDController(.05, 0, 0);
         pidDrive.setSetpoint(0);
@@ -130,7 +140,7 @@ public class HardwarePetkoTron_2000 {
         leftBackDrive.setDirection(DcMotor.Direction.REVERSE);
         rightFrontDrive.setDirection(DcMotor.Direction.FORWARD);
         rightBackDrive.setDirection(DcMotor.Direction.REVERSE);
-        arm.setDirection(DcMotor.Direction.REVERSE);
+        arm.setDirection(DcMotor.Direction.FORWARD);
         armPivot.setDirection(DcMotor.Direction.FORWARD);
         leftIntake.setDirection(DcMotor.Direction.REVERSE);
         rightIntake.setDirection(DcMotor.Direction.FORWARD);
@@ -153,16 +163,15 @@ public class HardwarePetkoTron_2000 {
         rightBackDrive.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
         arm.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
         armPivot.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
+        armPivot.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
 
         //Define and initialize ALL installed servos.
         leftClaw  = hwMap.get(Servo.class, "left_claw");
         rightClaw = hwMap.get(Servo.class, "right_claw");
         leftClaw.setDirection(Servo.Direction.FORWARD);
         rightClaw.setDirection(Servo.Direction.REVERSE);
-        leftClaw.setPosition(INITIAL_CLAW);
-        rightClaw.setPosition(INITIAL_CLAW);
-
-        arm.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
+        //leftClaw.setPosition(INITIAL_CLAW);
+        //rightClaw.setPosition(INITIAL_CLAW);
     }
 
     public void resetEncoders() {
